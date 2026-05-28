@@ -24,8 +24,8 @@ We implement and compare two simulation-based inference approaches:
 ```
 epidemic-parameter-inference-abc/
 ├── notebooks/
-│   ├── 01_rejection_abc.ipynb       # Rejection ABC implementation (primary: Zhi Xin)
-│   └── 02_abc_smc.ipynb             # ABC-SMC implementation (primary: teammate)
+│   ├── 01_rejection_abc.ipynb       # Rejection ABC implementation
+│   └── 02_abc_smc.ipynb             # ABC-SMC implementation
 ├── results/
 │   ├── abc_A_infection_only.csv     # ABC results: β only (ρ fixed)
 │   ├── abc_B_infection_rewiring.csv # ABC results: β and ρ joint inference
