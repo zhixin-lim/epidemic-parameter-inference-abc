@@ -1,4 +1,4 @@
-# Simulation-Based Inference for Epidemic Parameters on an Adaptive Network
+# Epidemic Parameter Inference on Adaptive Networks
 
 **Module:** ST3247 — Simulation Methods | National University of Singapore  
 **Topic:** Approximate Bayesian Computation (ABC) and Sequential Monte Carlo ABC (ABC-SMC) for inferring epidemic parameters on an adaptive contact network
@@ -9,18 +9,58 @@
 
 This project investigates whether more computationally efficient inference algorithms can overcome fundamental limitations in the information content of epidemic data. We model disease spread on an **adaptive network** — one where susceptible individuals rewire connections away from infected neighbours — and attempt to jointly infer two key parameters:
 
-- **β** — infection rate along S–I edges
+- **β** — infection rate along S–I edges  
 - **ρ** — rewiring rate (rate at which susceptible nodes sever connections to infected nodes)
 
 We implement and compare two simulation-based inference approaches:
-- **ABC (Approximate Bayesian Computation)** — rejection sampling with distance-based acceptance
-- **SMC-ABC (Sequential Monte Carlo ABC)** — iterative particle refinement with adaptive tolerance schedules
+
+1. **Rejection ABC** — baseline: simulate, compute distance to observed data, accept/reject
+2. **ABC-SMC** — Sequential Monte Carlo with adaptive tolerance schedule; iteratively refines particle populations toward the posterior
+
+---
+
+## Repository Structure
+
+```
+epidemic-parameter-inference-abc/
+├── notebooks/
+│   ├── 01_rejection_abc.ipynb       # Rejection ABC implementation (primary: Zhi Xin)
+│   └── 02_abc_smc.ipynb             # ABC-SMC implementation (primary: teammate)
+├── results/
+│   ├── abc_A_infection_only.csv     # ABC results: β only (ρ fixed)
+│   ├── abc_B_infection_rewiring.csv # ABC results: β and ρ joint inference
+│   ├── abc_C_all_seven.csv          # ABC results: full 7-summary-statistic model
+│   ├── abc_results_full.csv         # Full ABC posterior samples
+│   ├── abc_results_confirm.csv      # Confirmation run (robustness check)
+│   ├── abc_results_mahal.csv        # Results using Mahalanobis distance metric
+│   └── pilot_results.csv            # Pilot runs for tolerance calibration
+├── data/                            # Observed epidemic trajectory data
+├── Final Assignment.ipynb           # Combined final analysis and conclusions ← start here
+├── simulator.py                     # Adaptive network epidemic simulator
+└── README.md
+```
+
+> **Start here:** `Final Assignment.ipynb` contains the complete analysis — posterior comparisons, β–ρ correlation diagnosis, and conclusions. The `notebooks/` folder contains the individual working notebooks split by method during the collaborative phase of the project.
+
+---
+
+## Experimental Design
+
+The results CSVs reflect a deliberate progression of complexity:
+
+| File | What was varied | Purpose |
+|---|---|---|
+| `abc_A_infection_only` | β only, ρ fixed | Baseline: can we recover β in isolation? |
+| `abc_B_infection_rewiring` | β and ρ jointly | Core experiment: joint inference on the adaptive network |
+| `abc_C_all_seven` | Full 7-statistic summary | Does richer summary information resolve the correlation? |
+| `abc_results_mahal` | Mahalanobis distance | Does a better distance metric help? |
+| `abc_results_confirm` | Repeat of best run | Robustness and reproducibility check |
 
 ---
 
 ## Key Finding
 
-Despite SMC-ABC achieving tighter posterior tolerances and substantially better computational efficiency than vanilla ABC, **neither method resolves a persistent β–ρ correlation in the posterior**.
+Despite ABC-SMC achieving tighter posterior tolerances and substantially better computational efficiency than vanilla ABC, **neither method resolves a persistent β–ρ correlation in the posterior**.
 
 This is not a failure of the sampler — it is a structural **non-identifiability** in the epidemic mechanism itself:
 
@@ -30,51 +70,20 @@ Because S–I edge dynamics are unobserved in typical epidemic data (we observe 
 
 ---
 
-## Implications
-
-The results highlight a **key principle of simulation-based inference**:
+## Conclusion
 
 > *Posterior quality is ultimately constrained by the identifiability of the data-generating process — not by the sophistication of the sampler.*
 
-Progress requires **more informative data representations** — particularly summary statistics that capture the temporal evolution of network structure and the interaction between infection and rewiring dynamics (e.g., tracking S–I edge counts over time, not just aggregate case trajectories).
+Progress requires **more informative data representations** — particularly summary statistics that capture the temporal evolution of network structure and the interaction between infection and rewiring dynamics (e.g. tracking S–I edge counts over time, not just aggregate case trajectories).
 
 ---
 
-## 🚨 START HERE (FOR GRADING)
+## Methods Summary
 
-The **main file for this project is**:
-
-👉 `Final Assignment.ipynb`
-
-Please **run this notebook from top to bottom**.
-
-It contains the complete and final workflow used in the report, including:
-
-- data loading and preprocessing  
-- summary statistics construction and selection  
-- distance metric design  
-- rejection ABC implementation  
-- ABC-SMC implementation  
-- final results and analysis  
-
-All other notebooks in this repository are **exploratory or intermediate work** and are **not required for grading**.
-
----
-
-## ⚙️ Environment Setup
-
-This project uses standard Python scientific libraries.
-
-### Requirements
-
-- Python 3.10 or above  
-- numpy  
-- pandas  
-- matplotlib  
-- scipy  
-- jupyter  
-
-### Install dependencies
-
-```bash
-pip install numpy pandas matplotlib scipy jupyter
+| Component | Detail |
+|---|---|
+| Network model | Adaptive SIS on Erdős–Rényi graph |
+| Inference methods | Rejection ABC · ABC-SMC (adaptive ε) |
+| Summary statistics | Final epidemic size, peak prevalence, time-to-peak + 4 additional |
+| Distance metrics | Weighted Euclidean · Mahalanobis |
+| Language | Python (NumPy, Matplotlib) |
